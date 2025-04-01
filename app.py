@@ -8,13 +8,9 @@ import plotly.graph_objects as go
 
 st.set_page_config(layout='wide')
 st.markdown('<style>div.block-container{padding-top:1rem}</style>', unsafe_allow_html=True)
-uploaded_csv = st.file_uploader('Copy of 2021-2024 Products Team Customers by Item and Ship To.csv', type=['csv'])
-uploaded_img = st.file_uploader('Phokus_Logo.jpg', type=['jpg'])
-if uploaded_csv is None or uploaded_img is None:
-    st.warning("Please upload both the CSV and logo image to continue.")
-    st.stop()
-df = pd.read_csv(uploaded_csv)
-image = Image.open(uploaded_img)
+df = pd.read_csv("Copy of 2021-2024 Products Team Customers by Item and Ship To.csv")
+image = Image.open("Phokus_Logo.jpg")
+
 
 
 col1, col2 = st.columns([0.1,0.9])
