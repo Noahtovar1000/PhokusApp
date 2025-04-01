@@ -9,7 +9,18 @@ import plotly.graph_objects as go
 st.set_page_config(layout='wide')
 st.markdown('<style>div.block-container{padding-top:1rem}</style>', unsafe_allow_html=True)
 df = pd.read_csv("Copy of 2021-2024 Products Team Customers by Item and Ship To.csv")
+df['Ship Date'] = pd.to_datetime(df['Ship Date'])  # <- Move this up here
+df = df[df['Ship Date'].dt.year.between(2021, 2024)]
+df['Month'] = df['Ship Date'].dt.to_period('M').dt.to_timestamp()
 image = Image.open("Phokus_Logo.jpg")
+
+years_available = sorted(df['Ship Date'].dt.year.unique())
+selected_years = st.multiselect(
+    'Select Year(s) to View',
+    options=years_available,
+    default=[2024]
+)
+year_label = ", ".join(map(str, selected_years))
 
 
 
@@ -23,7 +34,7 @@ html_title = """
     font-weight:bold;
     padding:20px;
     border-radius:7px
-    }
+    } 
     </style>
     <center><h1 class = "title-test"> Phokus Research Interactive Dashboard</h1></center>"""
 with col2:
@@ -37,14 +48,12 @@ with col3:
 
 with col4:
     purchase_categories = df['Vertical'].dropna().unique()
-df['Ship Date'] = pd.to_datetime(df['Ship Date'])
-df['Month'] = df['Ship Date'].dt.to_period('M').dt.to_timestamp()
 
 download_data = pd.DataFrame()
 
 fig = go.Figure()
 for category in purchase_categories:
-    temp_df = df[(df['Vertical'] == category) & (df['Ship Date'].dt.year == 2024)]
+    temp_df = df[(df['Vertical'] == category) & (df['Ship Date'].dt.year.isin(selected_years))]
     monthly_count = temp_df.groupby('Month').size().reset_index(name='Purchase Count')
     monthly_count['Category'] = category
     download_data = pd.concat([download_data, monthly_count], ignore_index=True)
@@ -58,15 +67,20 @@ for category in purchase_categories:
     ))
 
 dropdown_buttons = [
-    dict(label=cat,
-         method='update',
-         args=[{'visible': [cat == c for c in purchase_categories]},
-               {'title': f'Purchase Quantity by Month (2024) - {cat}'}])
+    dict(
+        label=cat,
+        method='update',
+        args=[
+            {'visible': [cat == c for c in purchase_categories]},
+            {'title': f'Purchase Quantity by Month ({year_label}) - {cat}'}
+        ]
+    )
     for cat in purchase_categories
 ]
 
+
 fig.update_layout(
-    title=f'Purchases by Month (2024) - {purchase_categories[0]}',
+    title=f'Purchases by Month ({year_label}) - {purchase_categories[0]}',
     xaxis_title='Month',
     yaxis_title='Purchase Count',
     updatemenus=[{
@@ -135,8 +149,6 @@ st.divider()
 
 with col5:
     # Clean up the data
-    df['Ship Date'] = pd.to_datetime(df['Ship Date'])
-df['Month'] = df['Ship Date'].dt.to_period('M').dt.to_timestamp()
 df['Amount $$'] = (
     df['Amount $$']
     .astype(str)
@@ -155,8 +167,7 @@ download_price_data = pd.DataFrame()
 
 # Add a trace for each category
 for category in purchase_categories:
-    temp_df = df[(df['Vertical'] == category) & (df['Ship Date'].dt.year == 2024)]
-    
+    temp_df = df[(df['Vertical'] == category) & (df['Ship Date'].dt.year.isin(selected_years))]
     monthly_price = temp_df.groupby('Month')['Amount $$'].mean().round(2).reset_index(name='Purchase Price')
     monthly_price['Category'] = category  # Add category to track
     
@@ -172,16 +183,21 @@ for category in purchase_categories:
 
 # Create dropdown buttons for each category
 dropdown_buttons = [
-    dict(label=cat,
-         method='update',
-         args=[{'visible': [cat == c for c in purchase_categories]},
-               {'title': f'Purchase Price by Month (2024) - {cat}'}])
+    dict(
+        label=cat,
+        method='update',
+        args=[
+            {'visible': [cat == c for c in purchase_categories]},
+            {'title': f'Purchase Price by Month ({year_label}) - {cat}'}
+        ]
+    )
     for cat in purchase_categories
 ]
 
+
 # Update layout
 fig.update_layout(
-    title=f'Purchase Price by Month (2024) - {purchase_categories[0]}',
+    title=f'Purchase Price by Month ({year_label}) - {purchase_categories[0]}',
     xaxis_title='Month',
     yaxis_title='Average Purchase Price ($)',
     updatemenus=[{
