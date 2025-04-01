@@ -10,6 +10,8 @@ st.set_page_config(layout='wide')
 st.markdown('<style>div.block-container{padding-top:1rem}</style>', unsafe_allow_html=True)
 df = pd.read_csv("Copy of 2021-2024 Products Team Customers by Item and Ship To.csv")
 df['Ship Date'] = pd.to_datetime(df['Ship Date'])  # <- Move this up here
+df = df[df['Ship Date'].dt.year.between(2021, 2024)]
+df['Month'] = df['Ship Date'].dt.to_period('M').dt.to_timestamp()
 image = Image.open("Phokus_Logo.jpg")
 
 years_available = sorted(df['Ship Date'].dt.year.unique())
@@ -46,8 +48,6 @@ with col3:
 
 with col4:
     purchase_categories = df['Vertical'].dropna().unique()
-df['Ship Date'] = pd.to_datetime(df['Ship Date'])
-df['Month'] = df['Ship Date'].dt.to_period('M').dt.to_timestamp()
 
 download_data = pd.DataFrame()
 
@@ -149,8 +149,6 @@ st.divider()
 
 with col5:
     # Clean up the data
-    df['Ship Date'] = pd.to_datetime(df['Ship Date'])
-df['Month'] = df['Ship Date'].dt.to_period('M').dt.to_timestamp()
 df['Amount $$'] = (
     df['Amount $$']
     .astype(str)
