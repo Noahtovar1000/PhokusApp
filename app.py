@@ -149,7 +149,8 @@ st.divider()
 
 with col5:
     # Clean up the data
-df['Amount $$'] = (
+    df['Amount $$'] = (
+    df['Amount $$'] = (
     df['Amount $$']
     .astype(str)
     .str.replace(r'[^\d.]', '', regex=True)
